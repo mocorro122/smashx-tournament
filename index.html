@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smash X Tournament Manager</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main class="app">
+  <header>
+    <div>
+      <div class="brand">SMASH X • PLAY BEYOND LIMIT</div>
+      <h1>Tournament Manager</h1>
+      <p class="tag">Create fair Mid × Low pairings, divide teams into brackets, generate round-robin or elimination formats, enter scores, calculate standings, and build playoff matches.</p>
+    </div>
+  </header>
+
+  <section class="grid no-print">
+    <div class="card">
+      <div class="pad">
+        <div class="field" style="margin-bottom:16px">
+          <label>Pairing Method</label>
+          <select id="pairingMethod">
+            <option value="category" selected>Category Pairing (Default)</option>
+            <option value="random">Random Pairing</option>
+          </select>
+          <p class="muted" id="pairingHelp" style="margin:8px 0 0">
+            Enter Mid and Low players separately. Each team will contain exactly one Mid and one Low player.
+          </p>
+        </div>
+
+        <h2>1. Player Input</h2>
+
+        <div id="categoryInputs">
+          <p class="muted">Enter one player per line. Mid and Low totals must match.</p>
+          <div class="inputs">
+            <div><label>Mid Players</label><textarea id="midInput"></textarea><div class="muted" id="midCount">0 players</div></div>
+            <div><label>Low Players</label><textarea id="lowInput"></textarea><div class="muted" id="lowCount">0 players</div></div>
+          </div>
+        </div>
+
+        <div id="randomInputs" class="hidden">
+          <p class="muted">Enter all players in one list. The total number of players must be even.</p>
+          <div>
+            <label>Players</label>
+            <textarea id="allPlayersInput"></textarea>
+            <div class="muted" id="allPlayersCount">0 players</div>
+          </div>
+        </div>
+        <div class="row" id="categoryShuffleControls">
+          <button class="secondary" id="shuffleMid">Shuffle Mid</button>
+          <button class="secondary" id="shuffleLow">Shuffle Low</button>
+          <button class="secondary" id="shuffleBoth">Shuffle Both</button>
+        </div>
+        <div class="row hidden" id="randomShuffleControls">
+          <button class="secondary" id="shuffleAllPlayers">Shuffle Players</button>
+        </div>
+        <div class="row">
+          <button class="primary" id="spinOne">Spin One Pair</button>
+          <button class="primary" id="spinAll">Spin & Pair All</button>
+          <button class="danger" id="reset">Reset</button>
+        </div>
+        <div class="status" id="status">Add Mid and Low players to begin.</div>
+      </div>
+    </div>
+
+    <div class="card wheelbox">
+      <div>
+        <div class="wheelwrap"><div class="pointer"></div><canvas id="wheel" width="700" height="700"></canvas><div class="hub" id="hub">READY<br>TO SPIN</div></div>
+        <div class="latest"><small>Latest Pair</small><br><strong id="latest">No pair selected</strong></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="results no-print">
+    <div class="card"><div class="head"><h3>Bracket A</h3><span id="countA">0 pairs</span></div><div class="list" id="bracketA">No pairs yet.</div></div>
+    <div class="card"><div class="head"><h3>Bracket B</h3><span id="countB">0 pairs</span></div><div class="list" id="bracketB">No pairs yet.</div></div>
+  </section>
+
+  <section class="card setup hidden" id="setupSection">
+    <div class="pad">
+      <h2>2. Tournament Setup</h2>
+      <p class="muted">This section appears after all Mid × Low pairs are completed.</p>
+
+      <div class="setup-grid">
+        <div class="field">
+          <label>Tournament Format</label>
+          <select id="format">
+            <option value="roundrobin">Single Round Robin</option>
+            <option value="single">Single Elimination</option>
+            <option value="double">Double Elimination</option>
+          </select>
+        </div>
+        <div class="field rr-only">
+          <label>Brackets / Groups</label>
+          <input type="number" id="groupCount" min="1" max="8" value="2">
+        </div>
+        <div class="field rr-only">
+          <label>Teams per Bracket</label>
+          <input type="number" id="teamsPerGroup" min="2" value="5">
+        </div>
+        <div class="field">
+          <label>Match Scoring</label>
+          <select id="scoreTo">
+            <option value="11">First to 11</option>
+            <option value="15">First to 15</option>
+            <option value="21">First to 21</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field rr-only" id="advancementPanel" style="margin-top:14px">
+        <h3>Advancement Rules</h3>
+        <p class="muted">Choose how many teams advance from each bracket and which playoff stage will be generated.</p>
+
+        <div class="setup-grid">
+          <div>
+            <label>Teams Advancing per Bracket</label>
+            <select id="advancePreset">
+              <option value="1">Top 1</option>
+              <option value="2" selected>Top 2</option>
+              <option value="3">Top 3</option>
+              <option value="4">Top 4</option>
+              <option value="custom">Custom number</option>
+            </select>
+          </div>
+
+          <div id="customAdvanceWrap" class="hidden">
+            <label>Custom Teams Advancing</label>
+            <input type="number" id="advanceCount" min="1" value="2">
+          </div>
+
+          <div>
+            <label>Playoff Stage</label>
+            <select id="playoff">
+              <option value="finals">Finals Only</option>
+              <option value="semis" selected>Semifinals</option>
+              <option value="quarters">Quarterfinals</option>
+              <option value="r16">Round of 16</option>
+              <option value="custom">Custom</option>
+            </select>
+          </div>
+
+          <div id="customPlayoffWrap" class="hidden">
+            <label>Custom Playoff Teams</label>
+            <input type="number" id="customPlayoffTeams" min="2" value="4">
+          </div>
+        </div>
+
+        <div class="checks">
+          <label><input type="checkbox" id="thirdPlace" checked> Include Third Place Match</label>
+        </div>
+      </div>
+
+      <div class="setup-grid" style="margin-top:14px">
+      </div>
+
+      <div class="checks">
+        <label><input type="checkbox" id="shuffleTeams" checked> Shuffle teams before generating</label>
+      </div>
+
+      <div class="row">
+        <button class="primary" id="generateTournament">Generate Tournament</button>
+        <button class="secondary" id="rebuildPlayoffs">Generate Playoffs from Standings</button>
+      </div>
+      <div class="status" id="tournamentStatus">Choose your tournament settings, then generate.</div>
+    </div>
+  </section>
+
+  <section class="tour-output hidden" id="tourOutput">
+    <div id="generatedContent"></div>
+    <div class="actions no-print">
+      <button class="secondary" onclick="window.print()">Print Tournament</button>
+    </div>
+  </section>
+
+  <div class="modal-backdrop hidden" id="resetModal" role="dialog" aria-modal="true" aria-labelledby="resetModalTitle">
+    <div class="modal">
+      <h3 id="resetModalTitle">Reset Player Data?</h3>
+      <p class="muted">This will clear all entered players and generated pairs. This action cannot be undone.</p>
+      <div class="modal-actions">
+        <button class="secondary" id="cancelReset">Cancel</button>
+        <button class="danger" id="confirmReset">Yes, Reset</button>
+      </div>
+    </div>
+  </div>
+  <div class="toast" id="toast">Player data has been reset.</div>
+
+</main>
+
+<script src="script.js"></script>
+</body>
+</html>
